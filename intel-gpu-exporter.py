@@ -2,7 +2,7 @@ import json
 import string
 import subprocess
 import time
-import argparse
+import os
 
 from prometheus_client import (GC_COLLECTOR, PLATFORM_COLLECTOR,
                                PROCESS_COLLECTOR, REGISTRY, Metric,
@@ -14,14 +14,8 @@ class DataCollector(object):
         self._endpoint = endpoint
 
     def collect(self):
-        parser = argparse.ArgumentParser()
-        parser.add_argument("-d", "--device", help = "Device filter to select Intel GPU to monitor")
-        args = parser.parse_args()
-
-        if args.device:
-            cmd = "/usr/bin/timeout -k 2 2 /usr/bin/intel_gpu_top -J -d %s" % args.device
-        else:
-            cmd = "/usr/bin/timeout -k 2 2 /usr/bin/intel_gpu_top -J"
+        gpu = os.environ.get('GPU_DEVICE', 'drm:/dev/dri/card0')
+        cmd = "/usr/bin/timeout -k 2 2 /usr/bin/intel_gpu_top -J -d %s" % args.device
 
         raw_output = subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.decode("utf-8")
         output = f"[{raw_output.translate(str.maketrans('', '', string.whitespace))}]"
