@@ -2,6 +2,7 @@ import json
 import string
 import subprocess
 import time
+import argparse
 
 from prometheus_client import (GC_COLLECTOR, PLATFORM_COLLECTOR,
                                PROCESS_COLLECTOR, REGISTRY, Metric,
@@ -13,7 +14,15 @@ class DataCollector(object):
         self._endpoint = endpoint
 
     def collect(self):
-        cmd = "/usr/bin/timeout -k 2 2 /usr/bin/intel_gpu_top -J"
+        parser = argparse.ArgumentParser()
+        parser.add_argument("-d", "--device", help = "Device filter to select Intel GPU to monitor")
+        args = parser.parse_args()
+        
+        if args.device:
+            cmd = "/usr/bin/timeout -k 2 2 /usr/bin/intel_gpu_top -J -d %s" % args.device
+        else:
+            cmd = "/usr/bin/timeout -k 2 2 /usr/bin/intel_gpu_top -J"
+        
         raw_output = subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.decode("utf-8")
         output = f"[{raw_output.translate(str.maketrans('', '', string.whitespace))}]"
         data = json.loads(output)
@@ -24,18 +33,31 @@ class DataCollector(object):
         yield metric
 
         render_busy_percent = data[1]["engines"]["Render/3D/0"]["busy"]
-        metric = Metric("intel_gpu_render_busy_percent", "Render busy utilisation in %", "summary")
+        metric = Metric("intel_gpu_render_busy_percent", "Render engine busy utilisation in %", "summary")
         metric.add_sample("intel_gpu_render_busy_percent", value=render_busy_percent, labels={})
         yield metric
 
-        video_busy_percent = data[1]["engines"]["Video/0"]["busy"]
-        metric = Metric("intel_gpu_video_busy_percent", "Video busy utilisation in %", "summary")
-        metric.add_sample("intel_gpu_video_busy_percent", value=video_busy_percent, labels={})
+        video_0_busy_percent = data[1]["engines"]["Video/0"]["busy"]
+        metric = Metric("intel_gpu_video_0_busy_percent", "Video 0 engine busy utilisation in %", "summary")
+        metric.add_sample("intel_gpu_video_0_busy_percent", value=video_0_busy_percent, labels={})
         yield metric
 
-        enhance_busy_percent = data[1]["engines"]["VideoEnhance/0"]["busy"]
-        metric = Metric("intel_gpu_enhance_busy_percent", "Enhance busy utilisation in %", "summary")
-        metric.add_sample("intel_gpu_enhance_busy_percent", value=enhance_busy_percent, labels={})
+        video_1_busy_percent = data[1]["engines"]["Video/1"]["busy"]
+        metric = Metric("intel_gpu_video_1_busy_percent", "Video 1 engine busy utilisation in %", "summary")
+        metric.add_sample("intel_gpu_video_1_busy_percent", value=video_1_busy_percent, labels={})
+        yield metric
+
+        enhance_0_busy_percent = data[1]["engines"]["VideoEnhance/0"]["busy"]
+        metric = Metric("intel_gpu_enhance_0_busy_percent", "Enhance 0 engine busy utilisation in %", "summary")
+        metric.add_sample("intel_gpu_enhance_0_busy_percent", value=enhance_0_busy_percent, labels={})
+        yield metric
+        
+        enhance_1_busy_percent = data[1]["engines"]["VideoEnhance/1"]["busy"]
+        #not all devices have a VideoEnhance/1 engine
+        if enhance_1_busy_percent is None
+            enhance_1_busy_percent = 0
+        metric = Metric("intel_gpu_enhance_1_busy_percent", "Enhance 1 engine busy utilisation in %", "summary")
+        metric.add_sample("intel_gpu_enhance_1_busy_percent", value=enhance_1_busy_percent, labels={})
         yield metric
 
 if __name__ == "__main__":
