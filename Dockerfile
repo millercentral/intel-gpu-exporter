@@ -1,6 +1,7 @@
 FROM docker.io/library/python:3.11.1-slim-bullseye
 
 ENV \
+    GPU_DEVICE="-d drm:/dev/dri/card0" \
     DEBCONF_NONINTERACTIVE_SEEN="true" \
     DEBIAN_FRONTEND="noninteractive" \
     APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE="DontWarn"
@@ -27,10 +28,10 @@ RUN \
         /var/cache/apt/* \
         /var/tmp/*
 
-ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/python3", "/app/intel-gpu-exporter.py"]
+ENTRYPOINT /usr/bin/tini -- /usr/local/bin/python3 /app/intel-gpu-exporter.py ${GPU_DEVICE}
 
 EXPOSE 8080/tcp
 
 LABEL \
-    org.opencontainers.image.base.name="ghcr.io/onedr0p/intel-gpu-exporter" \
-    org.opencontainers.image.authors="Devin Buhl <devin.kray@gmail.com>"
+    org.opencontainers.image.base.name="ghcr.io/millercentral/intel-gpu-exporter" \
+    org.opencontainers.image.authors="James Miller <james@millercentral.com>"
