@@ -15,7 +15,7 @@ class DataCollector(object):
 
     def collect(self):
         gpu = os.environ.get('GPU_DEVICE', 'drm:/dev/dri/card0')
-        cmd = "/usr/bin/timeout -k 2 2 /usr/bin/intel_gpu_top -J -d %s" % args.device
+        cmd = "/usr/bin/timeout -k 2 2 /usr/bin/intel_gpu_top -J -d %s" % gpu
 
         raw_output = subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.decode("utf-8")
         output = f"[{raw_output.translate(str.maketrans('', '', string.whitespace))}]"
