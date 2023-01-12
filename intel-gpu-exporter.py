@@ -27,11 +27,6 @@ class DataCollector(object):
         output = f"[{raw_output.translate(str.maketrans('', '', string.whitespace))}]"
         data = json.loads(output)
 
-        power_watts = data[1]["power"]["value"]
-        metric = Metric("intel_gpu_power", "Power utilisation in Watts", "summary")
-        metric.add_sample("intel_gpu_power", value=power_watts, labels={})
-        yield metric
-
         render_busy_percent = data[1]["engines"]["Render/3D/0"]["busy"]
         metric = Metric("intel_gpu_render_busy_percent", "Render engine busy utilisation in %", "summary")
         metric.add_sample("intel_gpu_render_busy_percent", value=render_busy_percent, labels={})
@@ -51,11 +46,12 @@ class DataCollector(object):
         metric = Metric("intel_gpu_enhance_0_busy_percent", "Enhance 0 engine busy utilisation in %", "summary")
         metric.add_sample("intel_gpu_enhance_0_busy_percent", value=enhance_0_busy_percent, labels={})
         yield metric
-        
-        enhance_1_busy_percent = data[1]["engines"]["VideoEnhance/1"]["busy"]
-        #not all devices have a VideoEnhance/1 engine
-        if enhance_1_busy_percent is None
-            enhance_1_busy_percent = 0
+
+        if 'VideoEnhance/1' not in data[1]["engines"]:
+            enhance_1_busy_percent = "0.0"
+        else:
+            enhance_1_busy_percent = data[1]["engines"]["VideoEnhance/1"]["busy"]
+            
         metric = Metric("intel_gpu_enhance_1_busy_percent", "Enhance 1 engine busy utilisation in %", "summary")
         metric.add_sample("intel_gpu_enhance_1_busy_percent", value=enhance_1_busy_percent, labels={})
         yield metric
