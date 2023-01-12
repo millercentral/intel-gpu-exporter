@@ -17,12 +17,12 @@ class DataCollector(object):
         parser = argparse.ArgumentParser()
         parser.add_argument("-d", "--device", help = "Device filter to select Intel GPU to monitor")
         args = parser.parse_args()
-        
+
         if args.device:
             cmd = "/usr/bin/timeout -k 2 2 /usr/bin/intel_gpu_top -J -d %s" % args.device
         else:
             cmd = "/usr/bin/timeout -k 2 2 /usr/bin/intel_gpu_top -J"
-        
+
         raw_output = subprocess.run(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.decode("utf-8")
         output = f"[{raw_output.translate(str.maketrans('', '', string.whitespace))}]"
         data = json.loads(output)
