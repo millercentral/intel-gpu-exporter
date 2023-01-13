@@ -1,4 +1,4 @@
-FROM docker.io/library/python:3.11.1-slim-bullseye
+FROM docker.io/library/ubuntu:22.04
 
 ENV \
     GPU_DEVICE="drm:/dev/dri/card0" \
@@ -11,16 +11,17 @@ WORKDIR /app
 COPY . .
 
 RUN \
-    pip install --no-cache-dir -r requirements.txt \
-    && \
     apt-get -qq update \
     && \
     apt-get install --no-install-recommends -y \
+        python3 \
+        python3-pip \
         intel-gpu-tools \
         tini \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
     && apt-get autoremove -y \
     && apt-get clean \
+    && pip install --no-cache-dir -r requirements.txt \
     && \
     rm -rf \
         /tmp/* \
@@ -28,7 +29,7 @@ RUN \
         /var/cache/apt/* \
         /var/tmp/*
 
-ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/python3", "/app/intel-gpu-exporter.py"]
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/bin/python3", "/app/intel-gpu-exporter.py"]
 
 EXPOSE 8080/tcp
 
